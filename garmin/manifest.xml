@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
+    <iq:application entry="PixelRemoteApp" id="b7e89053786045fc9a3c9d70dfd8a174" launcherIcon="@Drawables.Launcher" minSdkVersion="5.1.0" name="@Strings.AppName" type="watch-app" version="0.9.1">
+        <iq:products>
+            <iq:product id="fenix847mm"/>
+        </iq:products>
+        <iq:permissions><iq:uses-permission id="Communications"/></iq:permissions>
+        <iq:languages><iq:language>deu</iq:language><iq:language>eng</iq:language></iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
