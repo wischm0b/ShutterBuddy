@@ -1,10 +1,10 @@
-# Pixel Remote – Logoentwürfe, Runde 2
+# Pixel Remote — second-round logo proposals
 
-Erstellt mit dem eingebauten Imagegen-Tool. Ausgangspunkt: bevorzugte Blenden-Uhr (03) mit Gehäuseform der Objektiv-Uhr (01) und dem vom Nutzer bereitgestellten Foto seiner Fenix 8 als Formreferenz. Drei alternative Entwürfe, noch nicht in die Apps eingebaut.
+Created with the built-in Imagegen tool. The preferred aperture watch (03), the lens watch case (01), and the user’s Fenix 8 photograph supplied the design references. These are three alternatives from the second selection round; variant 2 was selected for the final app assets.
 
-Die abschließenden Korrekturprompts sind in [REFINEMENTS.md](REFINEMENTS.md) dokumentiert.
+Final correction prompts are recorded in [REFINEMENTS.md](REFINEMENTS.md).
 
-## Gemeinsamer Prompt
+## Shared prompt
 
 Use case: logo-brand. Edit the logo into a new Pixel Remote app icon proposal. Reference 1 supplies the preferred six-blade mint camera aperture: preserve this aperture identity and large dark hexagonal center. Reference 2 supplies the more convincing wristwatch body, lugs and short strap segments: replace its lens with the aperture from reference 1. Reference 3 is the user's actual Fenix 8, use ONLY its rugged watch silhouette as a design reference, not the photograph, screen text, hand or background. Strong round bezel, angular lugs, sport-watch side pushbuttons rather than a single traditional winding crown. Front-facing centered flat graphic icon, not a product photo. Palette remains mint #9EE8C2, warm ivory and deep graphite #0C1210. Large readable geometric shapes with ample negative space and safe margins. Square opaque graphite background. No lettering, logos, numbers, clock hands, photo textures, realistic shading, mockup or extra symbols. Produce exactly one icon, not a grid.
 

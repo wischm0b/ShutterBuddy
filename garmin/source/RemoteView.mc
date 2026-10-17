@@ -39,14 +39,15 @@ class RemoteView extends WatchUi.View {
         var textWidth = dc.getTextWidthInPixels(value, Graphics.FONT_SMALL);
         var iconWidth = 26; var gap = 16;
         var left = cx - (iconWidth + gap + textWidth)/2;
-        drawTimer(dc, left + iconWidth/2, h*0.86);
+        if (remote.seriesMode) { drawSeries(dc, left + iconWidth/2, h*0.86); }
+        else { drawTimer(dc, left + iconWidth/2, h*0.86); }
         dc.setColor(remote.delaySeconds() > 0 ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
         dc.drawText(left + iconWidth + gap, h*0.86 - dc.getFontHeight(Graphics.FONT_SMALL)/2,
             Graphics.FONT_SMALL, value, Graphics.TEXT_JUSTIFY_LEFT);
         dc.setPenWidth(1);
     }
     function drawStatus(dc, x, y) {
-        var feedback = remote.feedbackCode != -1 || remote.waiting.equals("prepare") || remote.waiting.equals("shutter") || remote.waiting.equals("timer") || remote.waiting.equals("cancel");
+        var feedback = remote.feedbackCode != -1 || remote.seriesActive || remote.waiting.equals("prepare") || remote.waiting.equals("shutter") || remote.waiting.equals("timer") || remote.waiting.equals("cancel");
         var linkX = feedback ? x - 28 : x;
         if (remote.ready) { drawLink(dc, linkX, y, true); }
         else { drawSpinner(dc, linkX, y); }
@@ -69,15 +70,24 @@ class RemoteView extends WatchUi.View {
     }
     function drawKeyHints(dc, w, h) {
         dc.setPenWidth(4);
-        dc.setColor(remote.delaySeconds() < 10 ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(remote.delaySeconds() < (remote.seriesMode ? 5 : 10) ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
         var px = w*RemoteLayout.PLUS_X; var py = h*RemoteLayout.PLUS_Y;
         dc.drawLine(px - 12, py, px + 12, py); dc.drawLine(px, py - 12, px, py + 12);
-        dc.setColor(remote.delaySeconds() > 0 ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(remote.delaySeconds() > (remote.seriesMode ? 1 : 0) ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
         var mx = w*RemoteLayout.MINUS_X; var my = h*RemoteLayout.MINUS_Y;
         dc.drawLine(mx - 12, my, mx + 12, my);
         dc.setColor(remote.ready ? MINT : DIM, Graphics.COLOR_TRANSPARENT);
         var sx = w*RemoteLayout.START_X; var sy = h*RemoteLayout.START_Y;
-        dc.drawCircle(sx, sy, 13); dc.fillCircle(sx, sy, 5);
+        dc.drawCircle(sx, sy, 13);
+        if (remote.seriesActive) { dc.fillRectangle(sx - 6, sy - 6, 12, 12); }
+        else { dc.fillCircle(sx, sy, 5); }
+    }
+    function drawSeries(dc, x, y) {
+        dc.setPenWidth(2); dc.setColor(MINT, Graphics.COLOR_TRANSPARENT);
+        dc.drawRectangle(x - 12, y - 6, 19, 17);
+        dc.drawLine(x - 7, y - 11, x + 12, y - 11);
+        dc.drawLine(x + 12, y - 11, x + 12, y + 6);
+        dc.fillCircle(x - 2, y + 2, 3);
     }
     function drawTimer(dc, x, y) {
         dc.setPenWidth(2);
@@ -89,7 +99,8 @@ class RemoteView extends WatchUi.View {
     }
     function drawFeedback(dc, x, y) {
         dc.setPenWidth(3);
-        if (remote.waiting.equals("prepare") || remote.waiting.equals("shutter") || remote.waiting.equals("timer") || remote.waiting.equals("cancel")) {
+        if (remote.waiting.equals("series")) { drawSeries(dc, x, y); }
+        else if (remote.waiting.equals("prepare") || remote.waiting.equals("shutter") || remote.waiting.equals("timer") || remote.waiting.equals("cancel")) {
             dc.setColor(AMBER, Graphics.COLOR_TRANSPARENT);
             dc.drawLine(x - 8, y - 10, x + 8, y - 10); dc.drawLine(x - 8, y + 10, x + 8, y + 10);
             dc.drawLine(x - 7, y - 9, x + 7, y + 9); dc.drawLine(x + 7, y - 9, x - 7, y + 9);

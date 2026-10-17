@@ -24,6 +24,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ImageView;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public final class MainActivity extends Activity {
     private final Handler handler = new Handler();
@@ -34,14 +35,15 @@ public final class MainActivity extends Activity {
     private int page, surface, soft, ink, muted, accent, onAccent, outline;
 
     @Override protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
+        super.attachBaseContext(Localized.context(base));
         String appearance = base.getSharedPreferences("appearance", MODE_PRIVATE).getString("theme", "dark");
+        Configuration config = new Configuration();
+        config.setLocale(Locale.forLanguageTag(WatchSettings.language(base)));
         if (!"system".equals(appearance)) {
-            Configuration config = new Configuration();
             config.uiMode = (base.getResources().getConfiguration().uiMode & ~Configuration.UI_MODE_NIGHT_MASK)
                     | ("light".equals(appearance) ? Configuration.UI_MODE_NIGHT_NO : Configuration.UI_MODE_NIGHT_YES);
-            applyOverrideConfiguration(config);
         }
+        applyOverrideConfiguration(config);
     }
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -65,47 +67,48 @@ public final class MainActivity extends Activity {
         TextView brand = text("SHUTTER BUDDY", 12, accent); brand.setLetterSpacing(.18f); brand.setTypeface(null, Typeface.BOLD);
         LinearLayout.LayoutParams brandLayout = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
         brandLayout.leftMargin = dp(18); brandRow.addView(brand, brandLayout); content.addView(brandRow);
-        TextView heading = text("Deine Kamera.\nAm Handgelenk.", 34, ink);
+        TextView heading = text(getString(R.string.hero), 34, ink);
         heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL)); heading.setLineSpacing(dp(2), 1); add(content, heading, 18);
         TextView subtitle = text("Pixel 8 Pro + Fenix 8", 15, muted); add(content, subtitle, 12);
 
         LinearLayout card = column(); card.setPadding(dp(22), dp(22), dp(22), dp(22)); card.setBackground(round(surface, 24, outline)); add(content, card, 28);
-        badge = text("●  BEREIT ZUM START", 12, accent); badge.setLetterSpacing(.08f); badge.setTypeface(null, Typeface.BOLD); card.addView(badge);
-        TextView cardTitle = text("Verbunden fotografieren", 23, ink); cardTitle.setTypeface(null, Typeface.BOLD); add(card, cardTitle, 18);
+        badge = text(getString(R.string.ready_badge), 12, accent); badge.setLetterSpacing(.08f); badge.setTypeface(null, Typeface.BOLD); card.addView(badge);
+        TextView cardTitle = text(getString(R.string.card_title), 23, ink); cardTitle.setTypeface(null, Typeface.BOLD); add(card, cardTitle, 18);
         connection = text("", 14, muted); add(card, connection, 12);
         access = text("", 14, muted); add(card, access, 8);
-        primary = button(card, "Fernbedienung starten", true, v -> {
+        primary = button(card, getString(R.string.start_remote), true, v -> {
             if (CameraAccessibilityService.instance == null) openAccessSettings();
             else if (RemoteService.isRunning()) openCamera();
             else startRemote();
         });
-        stop = button(card, "Fernbedienung beenden", false, v -> endRemote(false));
+        stop = button(card, getString(R.string.stop_remote), false, v -> endRemote(false));
         feedback = text("", 14, accent); feedback.setTextIsSelectable(true); add(card, feedback, 14);
 
-        TextView usage = text("So geht’s", 18, ink); usage.setTypeface(null, Typeface.BOLD); add(content, usage, 28);
-        add(content, text("01   Fernbedienung starten\n02   Shutter Buddy auf der Uhr öffnen\n03   Pixel-Kamera öffnen · START drücken", 15, muted), 12);
-        TextView hint = text("Fotomodus wählen. Handy entsperrt und Display eingeschaltet lassen.", 13, muted); add(content, hint, 12);
+        TextView usage = text(getString(R.string.how_to), 18, ink); usage.setTypeface(null, Typeface.BOLD); add(content, usage, 28);
+        add(content, text(getString(R.string.usage), 15, muted), 12);
+        TextView hint = text(getString(R.string.camera_hint), 13, muted); add(content, hint, 12);
 
-        button(content, "Einstellungen", false, v -> {
+        button(content, getString(R.string.settings), false, v -> {
             settingsExpanded = !settingsExpanded; settings.setVisibility(settingsExpanded ? View.VISIBLE : View.GONE);
         });
         settings = column(); settings.setVisibility(settingsExpanded ? View.VISIBLE : View.GONE); add(content, settings, 14);
         settings.setPadding(dp(18), dp(18), dp(18), dp(18)); settings.setBackground(round(surface, 20, outline));
         addAppearance(settings);
-        TextView privacy = text("Bedienungshilfe", 18, ink); privacy.setTypeface(null, Typeface.BOLD); add(settings, privacy, 24);
-        add(settings, text("Zum Auslösen in der Pixel-Kamera nötig. Ohne Befehl liest der Dienst keine Bedienelemente aus.", 13, muted), 8);
-        Switch disable = new Switch(this); disable.setText("Beim Beenden deaktivieren"); disable.setTextSize(14); disable.setTextColor(ink);
+        addWatchSettings(settings);
+        TextView privacy = text(getString(R.string.access_title), 18, ink); privacy.setTypeface(null, Typeface.BOLD); add(settings, privacy, 24);
+        add(settings, text(getString(R.string.access_help), 13, muted), 8);
+        Switch disable = new Switch(this); disable.setText(getString(R.string.disable_stop)); disable.setTextSize(14); disable.setTextColor(ink);
         disable.setChecked(getSharedPreferences("appearance", MODE_PRIVATE).getBoolean("disableOnStop", false));
         disable.setOnCheckedChangeListener((view, checked) -> getSharedPreferences("appearance", MODE_PRIVATE).edit().putBoolean("disableOnStop", checked).apply()); add(settings, disable, 16);
-        add(settings, text("Danach musst du sie vor der nächsten Nutzung in Android selbst wieder einschalten.", 12, muted), 8);
-        button(settings, "Bedienungshilfe verwalten", false, v -> openAccessSettings());
-        button(settings, "Jetzt vollständig deaktivieren", false, v -> endRemote(true));
-        button(settings, "Andere Uhr verwenden", false, v -> {
+        add(settings, text(getString(R.string.access_again), 12, muted), 8);
+        button(settings, getString(R.string.manage_access), false, v -> openAccessSettings());
+        button(settings, getString(R.string.fully_disable), false, v -> endRemote(true));
+        button(settings, getString(R.string.switch_watch), false, v -> {
             stopService(new Intent(this, RemoteService.class));
             getSharedPreferences("remote", MODE_PRIVATE).edit().remove("iqWatch").apply();
-            RemoteService.lastResult = "Bereit für eine andere Uhr. Fernbedienung erneut starten.";
+            RemoteService.lastResult = UiMessage.of(R.string.switch_watch_hint);
         });
-        TextView version = text("SHUTTER BUDDY  /  0.8.1", 10, muted); version.setLetterSpacing(.12f); version.setGravity(Gravity.CENTER); add(content, version, 28);
+        TextView version = text("SHUTTER BUDDY  /  0.11.0", 10, muted); version.setLetterSpacing(.12f); version.setGravity(Gravity.CENTER); add(content, version, 28);
         update();
     }
     private LinearLayout column() { LinearLayout view = new LinearLayout(this); view.setOrientation(LinearLayout.VERTICAL); return view; }
@@ -129,9 +132,9 @@ public final class MainActivity extends Activity {
         view.setOnClickListener(click); add(parent, view, prominent ? 22 : 10); return view;
     }
     private void addAppearance(LinearLayout parent) {
-        TextView title = text("Darstellung", 18, ink); title.setTypeface(null, Typeface.BOLD); parent.addView(title);
+        TextView title = text(getString(R.string.appearance), 18, ink); title.setTypeface(null, Typeface.BOLD); parent.addView(title);
         RadioGroup modes = new RadioGroup(this); modes.setOrientation(RadioGroup.HORIZONTAL);
-        String[] values = {"dark", "light", "system"}; String[] labels = {"Dunkel", "Hell", "System"};
+        String[] values = {"dark", "light", "system"}; String[] labels = {getString(R.string.dark), getString(R.string.light), getString(R.string.system)};
         String selected = getSharedPreferences("appearance", MODE_PRIVATE).getString("theme", "dark");
         for (int i = 0; i < values.length; i++) {
             RadioButton option = new RadioButton(this); option.setId(View.generateViewId()); option.setText(labels[i]);
@@ -150,20 +153,46 @@ public final class MainActivity extends Activity {
     private void update() {
         boolean enabled = CameraAccessibilityService.instance != null;
         boolean running = RemoteService.isRunning(); boolean linked = RemoteService.hasWatchLink();
-        badge.setText(!enabled ? "●  EINRICHTUNG NÖTIG" : linked ? "●  UHR ERREICHBAR" : running ? "●  WARTE AUF DIE UHR" : "●  BEREIT ZUM START");
-        connection.setText(running ? RemoteService.state : "Garmin Connect verbindet Handy und Uhr.");
-        access.setText(enabled ? (running ? "Kamera-Bedienung ist freigegeben." : "Bedienungshilfe freigegeben · wartet auf einen Befehl.") : "Bedienungshilfe ist ausgeschaltet.");
-        primary.setText(!enabled ? "Bedienungshilfe einrichten" : running ? "Pixel-Kamera öffnen" : "Fernbedienung starten");
+        badge.setText(!enabled ? getString(R.string.setup_badge) : linked ? getString(R.string.linked_badge) : running ? getString(R.string.waiting_badge) : getString(R.string.ready_badge));
+        connection.setText(running ? getString(RemoteService.state) : getString(R.string.connect_help));
+        access.setText(enabled ? (running ? getString(R.string.access_active) : getString(R.string.access_idle)) : getString(R.string.access_off));
+        primary.setText(!enabled ? getString(R.string.setup_access) : running ? getString(R.string.open_camera) : getString(R.string.start_remote));
         stop.setVisibility(running ? View.VISIBLE : View.GONE);
-        feedback.setText(RemoteService.lastResult); feedback.setVisibility(RemoteService.lastResult.isEmpty() ? View.GONE : View.VISIBLE);
+        feedback.setText(RemoteService.lastResult.render(this)); feedback.setVisibility(RemoteService.lastResult.isEmpty() ? View.GONE : View.VISIBLE);
     }
     private void endRemote(boolean forceDisable) {
         stopService(new Intent(this, RemoteService.class));
         boolean disable = forceDisable || getSharedPreferences("appearance", MODE_PRIVATE).getBoolean("disableOnStop", false);
         if (disable) CameraAccessibilityService.turnOff();
-        RemoteService.lastResult = disable ? "Beendet. Bedienungshilfe ist ausgeschaltet." : "Fernbedienung beendet."; update();
+        RemoteService.lastResult = UiMessage.of(disable ? R.string.stopped_access : R.string.remote_stopped); update();
     }
     private void openAccessSettings() { startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)); }
+    private void addWatchSettings(LinearLayout parent) {
+        TextView language = text(getString(R.string.language), 18, ink); language.setTypeface(null, Typeface.BOLD); add(parent, language, 24);
+        RadioGroup languages = new RadioGroup(this); languages.setOrientation(RadioGroup.HORIZONTAL);
+        for (String value : new String[]{"en", "de"}) {
+            RadioButton option = new RadioButton(this); option.setId(View.generateViewId()); option.setTag(value);
+            option.setText("de".equals(value) ? "Deutsch" : "English"); option.setTextColor(ink);
+            languages.addView(option, new RadioGroup.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+            if (value.equals(WatchSettings.language(this))) languages.check(option.getId());
+        }
+        languages.setOnCheckedChangeListener((group, id) -> {
+            View selected = group.findViewById(id); if (selected == null) return;
+            String value = (String) selected.getTag();
+            if (!value.equals(WatchSettings.language(this))) { WatchSettings.saveLanguage(this, value); recreate(); }
+        }); add(parent, languages, 12);
+        TextView title = text(getString(R.string.watch_feedback), 18, ink); title.setTypeface(null, Typeface.BOLD); add(parent, title, 24);
+        addWatchSwitch(parent, R.string.shutter_vibration, "vibrate");
+        addWatchSwitch(parent, R.string.shutter_tone, "tone");
+        addWatchSwitch(parent, R.string.countdown_vibration, "countdownVibrate");
+        add(parent, text(getString(R.string.feedback_help), 12, muted), 12);
+        add(parent, text(getString(R.string.sync_help), 12, muted), 8);
+    }
+    private void addWatchSwitch(LinearLayout parent, int label, String key) {
+        Switch option = new Switch(this); option.setText(label); option.setTextSize(14); option.setTextColor(ink);
+        option.setMinHeight(dp(48)); option.setChecked(WatchSettings.enabled(this, key));
+        option.setOnCheckedChangeListener((view, checked) -> WatchSettings.save(this, key, checked)); add(parent, option, 12);
+    }
     private void startRemote() {
         ArrayList<String> permissions = new ArrayList<>();
         if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) permissions.add(Manifest.permission.BLUETOOTH_CONNECT);
@@ -177,7 +206,7 @@ public final class MainActivity extends Activity {
     }
     private void openCamera() {
         Intent intent = getPackageManager().getLaunchIntentForPackage(CameraAccessibilityService.CAMERA);
-        if (intent == null) { RemoteService.lastResult = "Pixel-Kamera nicht gefunden."; update(); return; }
+        if (intent == null) { RemoteService.lastResult = UiMessage.of(R.string.camera_missing); update(); return; }
         startActivity(intent);
     }
     @Override protected void onSaveInstanceState(Bundle state) { state.putBoolean("settings", settingsExpanded); super.onSaveInstanceState(state); }

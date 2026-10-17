@@ -1,6 +1,6 @@
-# Abschließende Korrekturen
+# Final refinements
 
-Mit dem eingebauten Imagegen-Tool; jeweils gezielte Bearbeitung des ersten Entwurfs, um fünf seitliche Tasten und saubere Konturen zu erhalten. Ausgeliefert werden nur die bereinigten Varianten.
+Targeted edits made with the built-in Imagegen tool to produce five side buttons and clean outlines. Only the corrected variants are included.
 
 ## 02-fenix-outdoor
 

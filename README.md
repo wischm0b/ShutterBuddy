@@ -1,24 +1,30 @@
 # Shutter Buddy
 
-<img src="app/src/main/res/drawable-nodpi/brand_logo.png" width="160" alt="Shutter Buddy Logo">
+<img src="app/src/main/res/drawable-nodpi/brand_logo.png" width="160" alt="Shutter Buddy logo">
 
-Steuere die Pixel-Standardkamera direkt von deiner Garmin-Uhr.
-Erprobt mit **Pixel 8 Pro** und **Fenix 8 AMOLED 47 mm**.
+Control the stock Pixel Camera from your Garmin watch.
+Developed with **Pixel 8 Pro** and **Fenix 8 AMOLED 47 mm**.
 
-**[Apps herunterladen](https://github.com/wischm0b/ShutterBuddy/releases/latest)**
+**[Download the apps](https://github.com/wischm0b/ShutterBuddy/releases/latest)**
 
-## Funktionen
+## Features
 
-- Auslösen per START-Taste oder Tippen auf das Logo.
-- Selbstauslöser mit 0, 3, 5 oder 10 Sekunden Vorlauf.
-- Statussymbole, Blendenanimation und Darkmode.
+- Shutter via START or a tap on the logo.
+- Self-timer: 0, 3, 5 or 10 seconds. Interval shooting: 1–5 seconds.
+- Phone settings for watch shutter vibration, shutter sound and gentle countdown vibration.
+- English by default; select German in the phone app for both apps.
+- Dark, light and system appearance; watch status icons and aperture animation.
 
-## Einrichtung
+## Setup
 
-1. APK auf dem Pixel installieren. PRG unter `GARMIN/APPS` auf die Uhr kopieren; eine vorhandene ShutterBuddy-/PixelRemote-PRG ersetzen.
-2. Uhr in Garmin Connect verbinden. In Shutter Buddy am Handy die Bedienungshilfe aktivieren und die Fernbedienung starten. Die Uhr-App öffnen.
-3. Pixel-Kamera im Fotomodus öffnen, Handy entsperrt und Display eingeschaltet lassen. Mit START auslösen.
+1. Install the APK on your Pixel. Copy the PRG into `GARMIN/APPS` on your watch, replacing the previous ShutterBuddy/PixelRemote PRG.
+2. Connect the watch in Garmin Connect. Enable accessibility in Shutter Buddy on the phone and start the remote. Open the watch app.
+3. Open Pixel Camera in Photo mode. Keep the phone unlocked and its screen on. Press START.
 
-**UP / DOWN** ändern den Vorlauf. **START oder BACK** fordert während des Countdowns den Abbruch an; Bestätigung abwarten. Einen zusätzlichen Timer in der Pixel-Kamera ausschalten.
+**UP / DOWN** adjusts the delay. Hold **DOWN** for about one second and release to switch between single and interval shooting (stack icon). In interval mode, **START** starts/stops shooting; the first photo follows the selected interval. Camera processing may increase the spacing.
 
-[Selbst bauen](docs/BUILD.md) · [Drittanbieter](THIRD_PARTY.md)
+**START or BACK** requests cancellation; wait for confirmation. Disable Pixel Camera’s own timer.
+
+Under **Settings**, choose language and watch feedback. Preferences sync when connected and are retained on the watch. Watch sound settings may silence the shutter tone. No preview or photo-library access.
+
+[Build from source](docs/BUILD.md) · [Third-party software](THIRD_PARTY.md)

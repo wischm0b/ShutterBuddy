@@ -1,7 +1,7 @@
-# Drittanbieter
+# Third-party software
 
-Die Android-App verwendet das offizielle **Garmin Connect IQ Companion App SDK 2.2.0**, Maven-Koordinaten `com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar`.
+The Android app uses the official **Garmin Connect IQ Companion App SDK 2.2.0**, Maven coordinates `com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar`.
 
-Copyright Garmin International bzw. zugehörige Rechteinhaber. Die Bibliothek unterliegt dem [Garmin Connect IQ SDK License Agreement und Developer Agreement](https://developer.garmin.com/connect-iq/sdk/). Der Download erfolgt durch Gradle aus Maven Central; die Bibliothek wird in die Android-APK eingebunden. Der SDK-Quellcode wird in diesem Projekt nicht veröffentlicht.
+Copyright Garmin International and the respective rights holders. The library is subject to the [Garmin Connect IQ SDK License Agreement and Developer Agreement](https://developer.garmin.com/connect-iq/sdk/). Gradle downloads it from Maven Central and includes it in the APK. Its source code is not published in this repository.
 
-Die Uhr-App wird mit dem offiziellen Garmin Connect IQ SDK gebaut. Die lokale Entwicklungsumgebung und Gerätedefinitionen werden nicht als App-Quellcode mitgeliefert.
+The watch app is built with the official Garmin Connect IQ SDK. The local SDK installation and device definitions are not included in this repository.

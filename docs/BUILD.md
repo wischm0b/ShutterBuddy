@@ -1,51 +1,59 @@
-# Shutter Buddy selbst bauen
+# Building Shutter Buddy
 
-## Voraussetzungen
+## Requirements
 
-- JDK 17 oder neuer, etwa die mit Android Studio installierte Java-Laufzeit.
-- Android SDK passend zu `compileSdk` in `app/build.gradle`: aktuell API 36, Minor-Version 1. Pfad über `ANDROID_HOME` oder eine lokale, nicht versionierte `local.properties` mit `sdk.dir` angeben.
-- Für Windows-Buildskripte PowerShell 7.
-- Für die Uhr: Garmin Connect IQ SDK und die Gerätedefinition `fenix847mm`, installierbar über den Garmin SDK Manager. Der aktuelle Stand wurde mit SDK 9.2.0 gebaut.
+- JDK 17 or later, for example Android Studio’s bundled runtime.
+- Android SDK matching `compileSdk` in `app/build.gradle`: API 36, minor version 1. Set `ANDROID_HOME` or use an untracked `local.properties` file containing `sdk.dir`.
+- PowerShell 7 for the Windows build scripts.
+- Garmin Connect IQ SDK and the `fenix847mm` device definition, installed through Garmin SDK Manager. This project has been built with SDK 9.2.0.
 
 ```powershell
 git clone https://github.com/wischm0b/ShutterBuddy.git
 cd ShutterBuddy
-$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
-$env:ANDROID_HOME = Join-Path $env:LOCALAPPDATA 'Android\Sdk'
+$env:JAVA_HOME = 'C:/Program Files/Android/Android Studio/jbr'
+$env:ANDROID_HOME = Join-Path $env:LOCALAPPDATA 'Android/Sdk'
 ```
 
 ## Android
 
-Der Gradle-Wrapper 8.13 ist enthalten. Beim ersten Start lädt er die Gradle-Distribution; der SHA-256-Wert ist festgelegt.
+The included Gradle 8.13 wrapper downloads its distribution on first use and verifies its pinned SHA-256 checksum.
 
 ```powershell
 ./gradlew.bat testDebugUnitTest assembleRelease lintDebug
-# Alternativ mit Kopie der fertigen APK nach dist:
+# Also copies the APK into dist:
 ./build.ps1 -Target Android
 ```
 
-Unter Linux/macOS kann der Wrapper mit `./gradlew` verwendet werden. Ausgabe: `app/build/outputs/apk/release/app-release.apk`, beim PowerShell-Build zusätzlich `dist/ShutterBuddy-<Android-Version>.apk`.
+Use `./gradlew` on Linux/macOS. Output: `app/build/outputs/apk/release/app-release.apk`; the PowerShell script also creates `dist/ShutterBuddy-<Android-version>.apk`.
 
-Die aktuelle Buildkonfiguration signiert lokale Release-Builds mit dem lokalen Android-Debugschlüssel. Dieser private Schlüssel wird nicht veröffentlicht. Ein selbst gebautes APK hat deshalb üblicherweise eine andere Signatur als das veröffentlichte APK und kann es nicht direkt als Update ersetzen. Für Updates auf dem bestehenden Gerät die APKs aus den GitHub-Releases verwenden.
+Local release builds currently use the local Android debug signing key. Private keys are excluded from Git. A build made on another machine will usually have a different signature and cannot directly update an installed published APK. Use the GitHub release APKs to update that installation.
 
 ## Garmin
 
 ```powershell
-./build.ps1 -Target Garmin -GarminSdk 'C:\Pfad\zum\ConnectIQ-SDK'
+./build.ps1 -Target Garmin -GarminSdk 'C:/path/to/ConnectIQ-SDK'
 ```
 
-Alternativ `GARMIN_SDK_HOME` setzen. Auf Windows erkennt das Skript auch das im SDK Manager ausgewählte SDK. Im ursprünglichen lokalen Workspace werden bereits vorhandene SDK-/Gradle-Installationen unter `../.tools` weiterverwendet; nach einem frischen Klonen werden diese Ordner nicht vorausgesetzt.
+Alternatively set `GARMIN_SDK_HOME`. On Windows, the script also detects the SDK selected in SDK Manager. In the original workspace it reuses existing SDK/Gradle installations under `../.tools`; a fresh clone does not require those directories.
 
-Der Garmin-Schlüssel wird bei Bedarf lokal unter `garmin/developer_key.der` erzeugt. Er bleibt unversioniert. Ausgabe: `dist/ShutterBuddy-<Garmin-Version>-fenix847mm.prg` und eine Kopie ohne Versionsnummer. Android- und Garmin-Version können unterschiedlich sein; das aktuelle Paar steht im README und im Release.
+A Garmin signing key is generated locally at `garmin/developer_key.der` if needed and remains untracked. Output: `dist/ShutterBuddy-<Garmin-version>-fenix847mm.prg` plus an unversioned copy. Android and Garmin versions may differ; each release identifies the matching pair.
 
-## Tests und Logo
+## Settings and languages
 
-Die Android-Unit-Tests laufen über Gradle. Garmin-Eingabe- und Grenzwerttests stehen mit `(:test)` im Quellcode; zum Ausführen ist ein funktionierender Connect-IQ-Simulator nötig. In der ursprünglichen Umgebung konnten diese Tests nur kompiliert werden.
+The phone owns watch feedback and language preferences. Each preference update increments a revision. Session-bound replies carry the latest snapshot, and changes are pushed to an active watch session. The watch rejects older revisions within a session and retains preferences across restarts. A new session accepts the phone’s current revision, including after a phone reinstall.
 
-Die Größenexporte des gewählten Logos lassen sich unter Windows unverändert neu erzeugen:
+Android strings use English defaults and German resources. The phone’s explicit language choice also selects the watch’s messages. Service results are stored as resource IDs and arguments so changing language updates existing feedback.
+
+Watch countdown feedback uses the existing timer: one gentle pulse per newly displayed positive second, without replaying skipped seconds. Shutter vibration/tone follows successful Pixel acknowledgement, including interval shots; it does not confirm that Pixel Camera saved a photo. No extra watch timer is allocated.
+
+## Tests and artwork
+
+Run Android unit tests through Gradle. Garmin tests use `(:test)` and require a working Connect IQ simulator to execute. In the original environment these tests could only be compiled; physical watch feedback still needs device testing.
+
+Regenerate logo sizes from the selected master without changing its design:
 
 ```powershell
 ./tools/Export-BrandAssets.ps1
 ```
 
-Signierschlüssel, SDKs, lokale Pfade, Compiler-Caches und Build-Ausgaben werden durch `.gitignore` ausgeschlossen. Aktuelle Installationsdateien werden separat als GitHub-Release bereitgestellt.
+Private signing keys, SDK installations, local paths, caches and build outputs are excluded by `.gitignore`. Installable files are distributed separately through GitHub releases.

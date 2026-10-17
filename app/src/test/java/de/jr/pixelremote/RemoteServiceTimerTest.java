@@ -44,6 +44,82 @@ public class RemoteServiceTimerTest {
     }
     private long results() { return sdk.messages.stream().filter(message -> "result".equals(message.get("type"))).count(); }
     private Map<?, ?> last() { return sdk.messages.get(sdk.messages.size() - 1); }
+    @Test public void helloAndHeartbeatCarryLatestPhoneSettings() throws Exception {
+        Map<?, ?> initial = (Map<?, ?>) sdk.messages.get(0).get("settings");
+        assertEquals("en", initial.get("language")); assertEquals(false, initial.get("tone"));
+        WatchSettings.saveLanguage(service, "de"); WatchSettings.save(service, "tone", true);
+        receive(Map.of("v", 2, "type", "ping", "session", shutter.get("session"), "rid", 1));
+        Map<?, ?> settings = (Map<?, ?>) last().get("settings");
+        assertEquals("de", settings.get("language")); assertEquals(true, settings.get("tone"));
+        assertEquals(2, settings.get("revision"));
+    }
+    @Test public void phoneChangePushesSettingsWithoutReconnectingOrStartingPhoto() {
+        WatchSettings.save(service, "countdownVibrate", false);
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("settings", last().get("type"));
+        assertEquals(shutter.get("session"), last().get("session"));
+        assertEquals(false, ((Map<?, ?>) last().get("settings")).get("countdownVibrate"));
+        assertEquals(0, results()); assertFalse(ReflectionHelpers.getField(service, "cameraPending"));
+    }
+    private void series(int interval) {
+        shutter.put("mode", "series"); shutter.put("delay", 0); shutter.put("interval", interval);
+    }
+    private void cancel() throws Exception {
+        receive(Map.of("v", 2, "type", "cancel", "session", shutter.get("session"), "seq", 1));
+    }
+    @Test public void seriesStartsAfterIntervalAndDuplicateDoesNotStartAnotherLoop() throws Exception {
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; done.accept(Protocol.OK); });
+        series(2); receive(shutter); receive(shutter);
+        assertEquals("seriesState", last().get("type")); assertEquals(0, last().get("count"));
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1999)); assertEquals(0, photos[0]);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1)); assertEquals(1, photos[0]);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2)); assertEquals(2, photos[0]);
+        cancel(); assertEquals(Protocol.CANCELLED, last().get("code"));
+        receive(shutter); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6)); assertEquals(2, photos[0]);
+    }
+    @Test public void stopBeforeFirstPhotoCancelsSeries() throws Exception {
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; done.accept(Protocol.OK); });
+        series(3); receive(shutter); cancel();
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6)); assertEquals(0, photos[0]);
+    }
+    @Test public void delayedCameraCompletionAfterStopCannotRestartSeries() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<java.util.function.IntConsumer> completion = new java.util.concurrent.atomic.AtomicReference<>();
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; completion.set(done); });
+        series(1); receive(shutter); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        cancel(); completion.get().accept(Protocol.OK);
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(6)); assertEquals(1, photos[0]);
+        assertEquals(Protocol.CANCELLED, last().get("code"));
+    }
+    @Test public void cameraFailureEndsSeriesImmediately() throws Exception {
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; done.accept(Protocol.NO_CAMERA); });
+        series(1); receive(shutter); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5));
+        assertEquals(1, photos[0]); assertEquals(Protocol.NO_CAMERA, last().get("code"));
+    }
+    @Test public void missingWatchHeartbeatEndsSeries() throws Exception {
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; done.accept(Protocol.OK); });
+        series(2); receive(shutter); shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(15));
+        assertEquals(5, photos[0]); assertEquals(Protocol.FAILED, last().get("code"));
+    }
+    @Test public void heartbeatKeepsLongSeriesAlive() throws Exception {
+        int[] photos = {0};
+        ReflectionHelpers.setField(service, "cameraAction", (RemoteService.CameraAction) done -> { photos[0]++; done.accept(Protocol.OK); });
+        series(2); receive(shutter);
+        for (int i = 0; i < 6; i++) {
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(3));
+            receive(Map.of("v", 2, "type", "ping", "session", shutter.get("session"), "rid", i));
+        }
+        assertEquals(9, photos[0]); assertEquals(0, results()); cancel();
+    }
+    @Test public void invalidIntervalDoesNotDispatchCamera() throws Exception {
+        series(0); receive(shutter); assertEquals(Protocol.FAILED, last().get("code"));
+        series(6); receive(shutter); assertEquals(Protocol.FAILED, last().get("code"));
+        assertFalse(ReflectionHelpers.getField(service, "cameraPending"));
+    }
     @Test public void duplicateCommandKeepsCountdownAndReturnsNoEarlyBusyResult() throws Exception {
         receive(shutter); receive(shutter);
         assertEquals("scheduled", last().get("type")); assertEquals(0, results());

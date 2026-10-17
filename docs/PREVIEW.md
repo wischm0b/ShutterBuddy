@@ -1,46 +1,22 @@
-# Historischer Vorschauversuch – ab 0.7.0 entfernt
+# Archived preview experiment — removed in 0.7.0
 
-Der Nutzer hat sich nach dem erfolgreichen Standbildversuch für den Fokus auf Auslöser und Timer entschieden. Screenshot-Code, Screenshot-Fähigkeit, Bildübertragung und Vorschauoberflächen sind mit 0.7.0 entfernt. Die folgenden Abschnitte dokumentieren ausschließlich frühere Versionen.
+The user chose to focus on shutter and timer controls after trying the still-image preview. Since 0.7.0 the apps contain no screenshot capability, preview requests, image transfer or preview UI. The following notes describe historical versions only.
 
-## Korrektur 0.6.1 nach Absturzprotokoll
+## Capture and transport
 
-`CIQ_LOG.BAK` vom Nutzer: 15.10.2026 09:56:16 UTC, Firmware 23.40, CIQ-API 6.0.3, `drawPreview`, Zeile 74: Exception in `drawBitmap2`. Der native kleine Bildpuffer darf für die GPU-Skalierung keine Palette haben. 0.6.1 lässt `:palette` und `:colorDepth` bei der Bitmap-Erstellung weg und verwendet das native Geräteformat. Die Array-Farbtabelle wird nur zum Dekodieren der RGB332-Pixel verwendet, nicht als Bitmap-Palette. Anzeige-Exceptions werden abgefangen. Ursache dieser Kombination ist durch eine [Erklärung eines Garmin-Entwicklers](https://forums.garmin.com/developer/connect-iq/f/discussion/336610/sdk-6-2-0/1636273) gestützt. Garmin-Regressionstest für wiederholtes Dekodieren und transformiertes Zeichnen ergänzt; auf dem tatsächlichen Gerät noch zu bestätigen.
+The experiment used Android 14’s `AccessibilityService.takeScreenshotOfWindow` for the visible Pixel Camera window. It checked the active package, window ID and unlocked state before capture, in the callback and before transfer. There was no full-screen fallback, gallery access, file output or upload.
 
-## Änderungen nach dem ersten Gerätetest
+Frames were reduced to RGB332, at most 128 pixels per side and 9,216 pixels total, then Base64-encoded to at most 12,288 characters. Protocol v2 used session-bound `preview`, `previewFrame` and `previewError` messages with a separate request ID. A serializer test checked that the largest frame plus metadata stayed below 16 KiB.
 
-0.5.2 lieferte einmal ein Bild; danach meldete die Uhr IQ! (Absturz). Die genaue Ursache ist ohne Garmin-Log unbekannt. 0.6.0 reduziert die Grafikbelastung: maximal 9.216 Pixel im nativen 8-Bit-Palettenpuffer, schrittweiser Aufbau von vier Zeilen pro 50 ms und Vergrößerung per `drawBitmap2`-Transformation erst beim Anzeigen. Keine vorab vergrößerte Bitmap mit Standardfarbtiefe mehr. Abbruch und Beenden stoppen den Decoder und lösen Referenzen.
+This was a manually requested screenshot, including camera overlays, rather than a direct camera stream or live view. Later versions cropped the camera window geometrically before reduction; this could remove scene edges and did not identify the exact viewfinder.
 
-Die Android-Aufnahme wird vor der Verkleinerung geometrisch beschnitten: Hochformat maximal 3:4, Querformat maximal 4:3, Mittelpunkt auf der langen Achse bei 46 %. Dieser zentrale Ausschnitt entfernt die großen äußeren Bedienflächen typischer Kameraansichten; exakte Suchergrenzen werden nicht erkannt. Symbole im Sucher bleiben sichtbar, Bildränder können fehlen. Übertragungslimits bleiben unverändert. Beide Apps auf 0.6.0 aktualisieren. Darstellung bis 78 % der Uhrbreite bzw. 59 % der Höhe unter Beibehaltung des Seitenverhältnisses.
+## Watch rendering and fixes
 
-Die folgenden Abschnitte beschreiben den ursprünglichen Versuch 0.5.0; Aufnahmebeschränkung und Übertragungsformat gelten weiterhin. Der ehemalige vollständige Screenshot und der vorab vergrößerte Bitmap-Aufbau sind mit 0.6.0 ersetzt.
+A preview initially worked once before an IQ crash. Version 0.6.0 reduced rendering load with incremental decoding and a small buffer. The user-supplied crash log from October 15, 2026 identified an exception in `drawBitmap2`. Version 0.6.1 switched from a paletted bitmap to the device’s native format for GPU scaling and caught rendering exceptions. These experiments were subsequently removed.
 
-Garmin 0.5.2 lässt das allgemeine Auswahl-Ereignis zu `onTap` / `onKey` durchfallen. Zuvor fing `onSelect` Touch ab und löste aus, bevor die Koordinatenprüfung erreicht wurde; größere Flächen in 0.5.1 allein halfen daher nicht. Nur der runde Kamera-Button bzw. der physische START-Knopf lösen aus. Android bleibt bei 0.5.0.
+Early preview taps also triggered the shutter because Garmin’s selection behaviour consumed touch before coordinate handling. Version 0.5.2 allowed events to reach `onTap` and `onKey`; changing touch target sizes alone had not fixed that issue.
 
-Erster implementierter Versuch. Noch kein Nachweis auf dem tatsächlichen Pixel/Fenix-Paar.
-
-## Kameraaufnahme
-
-Android `AccessibilityService.takeScreenshotOfWindow` ab API 34, mit deklarierter Fähigkeit `canTakeScreenshot`. Der Dienst prüft vor der Anfrage, im Screenshot-Callback und vor der Übergabe des kleinen Bildes: aktives Paket `com.google.android.GoogleCamera`, identische Fenster-ID, Handy entsperrt. Es gibt keinen Fallback auf ein anderes Fenster oder den vollständigen Bildschirm. Geschützte Fenster führen regulär zum Fehler.
-
-Die Hardwareaufnahme wird auf einem separaten Worker in ein kleines RGB332-Bild umgewandelt. HardwareBuffer und große Bitmaps werden geschlossen/recycelt. Keine Dateiausgabe, keine Speicherung in der Galerie, kein Upload. Ein lokales Testbild kann auf expliziten Test hin im Activity-Speicher verbleiben und wird beim Beenden der Funktion verworfen.
-
-Der erste Stand zeigt das gesamte Kamera-Fenster; UI-Elemente werden nicht erraten oder abgeschnitten. Die Aufnahme kann durch Änderungen der Pixel-Kamera oder geschützte Surface-Inhalte schwarz/fehlerhaft sein. Dies muss der Gerätetest zeigen.
-
-## Übertragung
-
-Protokollversion 2, bestehendes Sitzungstoken. Anfrage `preview` mit eigenem `pid`, unabhängig von Auslösesequenzen. Erfolgsantwort `previewFrame` mit `pid`, `width`, `height`, `encoding=rgb332-base64`, `pixels`, `ageMs`. Fehlerantwort `previewError` mit lokal protokollierter Beschreibung.
-
-Höchstens 128 Pixel je Seite und 9.216 Pixel insgesamt, Seitenverhältnis erhalten. Ein Byte pro Pixel: Rot in Bits 7–5, Grün in 4–2, Blau in 1–0. Base64 ohne Zeilenumbrüche; maximal 12.288 Zeichen. Der SDK-Serializer wird mit einer maximalen Beispielnachricht getestet (unter 16 KiB einschließlich Metadaten).
-
-Eine neue Anfrage wird während laufender Aufnahme/Timer abgelehnt und auf mindestens zwei Sekunden Abstand begrenzt. Eine noch nicht versendete Vorschau wird bei `prepare`, `shutter` oder `cancel` ungültig. Dienstende, neue Sitzung und Verbindungsabbruch verhindern die spätere Weitergabe. Bereits gesendete Nachrichten lassen sich im Garmin-Transport nicht priorisiert zurückrufen; dessen reale Laufzeit ist zu messen.
-
-## Darstellung auf der Uhr
-
-RGB332 wird über `StringUtil.convertEncodedString` dekodiert, Form und Nutzlastgröße werden geprüft. Einmaliges Zeichnen in eine BufferedBitmap mit Vergrößerung um maximal Faktor 3; danach normale Bitmap-Darstellung. Alter wird konservativ ab Anfragezeit angenähert. Es gibt keine automatische Aufnahme, Wiederholung oder laufende Live-Vorschau.
-
-**VORSCHAU** oder **MENU halten** öffnet den Abruf. **NEUES STANDBILD** / **DOWN** aktualisiert. **BACK** / **UP** schließt und verwirft den Puffer. **START** behält seine Auslösefunktion, verwirft das Bild und kehrt in die Aufnahmeansicht zurück. Antworten auf inzwischen abgebrochene oder durch Auslösen überholte Anfragen werden ignoriert.
-
-## Primärquellen
+## API references
 
 - [Android AccessibilityService](https://developer.android.com/reference/android/accessibilityservice/AccessibilityService)
 - [Garmin StringUtil](https://developer.garmin.com/connect-iq/api-docs/Toybox/StringUtil.html)

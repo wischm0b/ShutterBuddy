@@ -1,6 +1,6 @@
-# Pixel Remote – Logoentwürfe
+# Pixel Remote — initial logo proposals
 
-Drei unabhängige Entwürfe mit dem eingebauten Imagegen-Tool. PNG-Vorschläge zur Auswahl; noch nicht als Launcher-Symbole eingebaut. Mint/Graphit wie in den bestehenden Apps. Nach Auswahl wird das Symbol für Android und Garmin in passenden Größen aufbereitet.
+Three independent PNG proposals created with the built-in Imagegen tool, using the apps’ mint/graphite palette. These are the original selection drafts; the final artwork and exported assets are documented in [BRAND.md](../BRAND.md).
 
 ## 01-objektivuhr
 

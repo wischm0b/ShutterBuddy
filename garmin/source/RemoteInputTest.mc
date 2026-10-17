@@ -5,8 +5,35 @@ import Toybox.WatchUi;
 class InputTestRemote {
     var photos = 0;
     var delays = 0;
+    var modes = 0;
     function select() { photos += 1; }
     function changeDelay(direction) { delays += direction; }
+    function toggleMode() { modes += 1; }
+}
+
+(:test)
+function shortDownChangesDelayOnceDespiteReleaseAndKeyEvents(logger) {
+    var remote = new InputTestRemote();
+    var input = new RemoteInput(remote, new RemoteView(remote));
+    input.pressDown(100); input.releaseDown(500); input.handleKey(WatchUi.KEY_DOWN);
+    Test.assertEqual(remote.delays, -1); Test.assertEqual(remote.modes, 0);
+    input.pressDown(600); input.releaseDown(900); input.handleKey(WatchUi.KEY_DOWN);
+    Test.assertEqual(remote.delays, -2);
+    return true;
+}
+
+(:test)
+function longDownChangesModeWithoutChangingDelay(logger) {
+    var remote = new InputTestRemote();
+    var input = new RemoteInput(remote, new RemoteView(remote));
+    input.pressDown(100); input.pressDown(500); input.releaseDown(900);
+    input.handleKey(WatchUi.KEY_DOWN); input.releaseDown(950);
+    Test.assertEqual(remote.delays, 0); Test.assertEqual(remote.modes, 1);
+    input.pressDown(1000); input.releaseDown(1800);
+    Test.assertEqual(remote.modes, 2);
+    Test.assertEqual(DelaySelection.nextIndex(0, -1, 5), 0);
+    Test.assertEqual(DelaySelection.nextIndex(4, 1, 5), 4);
+    return true;
 }
 
 (:test)
