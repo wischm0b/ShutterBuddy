@@ -15,47 +15,19 @@ class PixelRemoteApp extends Application.AppBase {
     function getInitialView() { var view = new RemoteView(remote); return [view, new RemoteInput(remote, view)]; }
 }
 
-class RemoteInput extends WatchUi.InputDelegate {
+class RemoteInput extends WatchUi.BehaviorDelegate {
     var remote;
     var view;
-    var downSince = null;
-    var downHandled = false;
-    function initialize(model, screen) { InputDelegate.initialize(); remote = model; view = screen; }
-    // Raw events distinguish a held DOWN key from its short action, without
-    // changing the interval on the initial press or handling release twice.
+    function initialize(model, screen) { BehaviorDelegate.initialize(); remote = model; view = screen; }
+    // Selection must fall through to onKey/onTap to distinguish START from touch.
+    // Native MENU (hold UP on this Fenix) switches mode without timing a held key.
     function onSelect() { return false; }
-    function onKeyPressed(event) {
-        if (event.getKey() == WatchUi.KEY_DOWN) { return pressDown(System.getTimer()); }
-        return false;
-    }
-    function onKeyReleased(event) {
-        if (event.getKey() == WatchUi.KEY_DOWN) { return releaseDown(System.getTimer()); }
-        return false;
-    }
-    function pressDown(now) {
-        if (downSince == null) { downSince = now; downHandled = false; }
-        return true;
-    }
-    function releaseDown(now) {
-        if (downSince != null && !downHandled) {
-            var held = now - downSince; downSince = null; downHandled = true;
-            if (held >= 800) { remote.toggleMode(); } else { remote.changeDelay(-1); }
-        }
-        return true;
-    }
-    function onKey(event) {
-        return handleKey(event.getKey());
-    }
+    function onKey(event) { return handleKey(event.getKey()); }
     function handleKey(key) {
         if (key == WatchUi.KEY_ENTER) { remote.select(); return true; }
         if (key == WatchUi.KEY_UP) { remote.changeDelay(1); return true; }
-        if (key == WatchUi.KEY_DOWN) {
-            if (!downHandled) {
-                if (downSince != null) { releaseDown(System.getTimer()); }
-                else { remote.changeDelay(-1); downHandled = true; }
-            }
-            return true;
-        }
+        if (key == WatchUi.KEY_DOWN) { remote.changeDelay(-1); return true; }
+        if (key == WatchUi.KEY_MENU) { return onMenu(); }
         if (key == WatchUi.KEY_ESC) { return onBack(); }
         return false;
     }
@@ -65,7 +37,7 @@ class RemoteInput extends WatchUi.InputDelegate {
     }
     function onHold(event) {
         var p = event.getCoordinates();
-        if (RemoteLayout.hitsKey(p[0], p[1], view.width, view.height, RemoteLayout.MINUS_X, RemoteLayout.MINUS_Y)) { remote.toggleMode(); }
+        if (RemoteLayout.hitsKey(p[0], p[1], view.width, view.height, RemoteLayout.PLUS_X, RemoteLayout.PLUS_Y)) { remote.toggleMode(); }
         return true;
     }
     function onSwipe(event) {
@@ -87,7 +59,7 @@ class RemoteInput extends WatchUi.InputDelegate {
         }
         return true;
     }
-    function onMenu() { return true; }
+    function onMenu() { remote.toggleMode(); return true; }
     function onNextPage() { remote.changeDelay(-1); return true; }
     function onPreviousPage() { remote.changeDelay(1); return true; }
     function onBack() { if (!remote.cancelAction()) { WatchUi.popView(WatchUi.SLIDE_IMMEDIATE); } return true; }

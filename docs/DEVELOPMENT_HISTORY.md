@@ -12,4 +12,6 @@ This is an archive of the main implementation milestones. See the README and lat
 - **0.10.0:** Added single/interval mode switching through a held DOWN button. Interval shooting uses 1–5 second spacing, starts/stops with START, prevents overlapping camera actions and stops when watch heartbeats disappear.
 - **0.11.0:** Added phone-managed watch vibration, shutter tone and gentle countdown pulses. English is the default, with a German option shared by both apps. Translated repository documentation and public GitHub descriptions into English.
 
+- **0.11.1:** Moved mode switching to the native MENU action (hold UP). Holding DOWN opens music controls on the user’s Fenix. Removed custom hold timing and updated the phone instructions.
+
 Garmin tests compile in the original environment, but its simulator has not returned executable test results. Hardware behaviour must be checked on the Pixel/Fenix pair.

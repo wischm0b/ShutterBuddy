@@ -108,7 +108,7 @@ public final class MainActivity extends Activity {
             getSharedPreferences("remote", MODE_PRIVATE).edit().remove("iqWatch").apply();
             RemoteService.lastResult = UiMessage.of(R.string.switch_watch_hint);
         });
-        TextView version = text("SHUTTER BUDDY  /  0.11.0", 10, muted); version.setLetterSpacing(.12f); version.setGravity(Gravity.CENTER); add(content, version, 28);
+        TextView version = text("SHUTTER BUDDY  /  0.11.1", 10, muted); version.setLetterSpacing(.12f); version.setGravity(Gravity.CENTER); add(content, version, 28);
         update();
     }
     private LinearLayout column() { LinearLayout view = new LinearLayout(this); view.setOrientation(LinearLayout.VERTICAL); return view; }

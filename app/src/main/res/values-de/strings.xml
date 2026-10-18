@@ -5,7 +5,7 @@
   <string name="start_remote">Fernbedienung starten</string>
   <string name="stop_remote">Fernbedienung beenden</string>
   <string name="how_to">So geht’s</string>
-  <string name="usage">01   Fernbedienung starten\n02   Shutter Buddy auf der Uhr öffnen\n03   Pixel-Kamera öffnen · START drücken\n\nDOWN lange drücken: Einzelbild / Serie\nSerie: 1–5 s Abstand · START startet/stoppt</string>
+  <string name="usage">01   Fernbedienung starten\n02   Shutter Buddy auf der Uhr öffnen\n03   Pixel-Kamera öffnen · START drücken\n\nUP lange drücken: Einzelbild / Serie\nSerie: 1–5 s Abstand · START startet/stoppt</string>
   <string name="camera_hint">Fotomodus wählen. Handy entsperrt und Display eingeschaltet lassen.</string>
   <string name="settings">Einstellungen</string>
   <string name="access_title">Bedienungshilfe</string>

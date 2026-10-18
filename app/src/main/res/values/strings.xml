@@ -5,7 +5,7 @@
   <string name="start_remote">Start remote</string>
   <string name="stop_remote">Stop remote</string>
   <string name="how_to">How it works</string>
-  <string name="usage">01   Start the remote\n02   Open Shutter Buddy on your watch\n03   Open Pixel Camera · press START\n\nHold DOWN: single / interval\nInterval: 1–5 s · START starts/stops</string>
+  <string name="usage">01   Start the remote\n02   Open Shutter Buddy on your watch\n03   Open Pixel Camera · press START\n\nHold UP: single / interval\nInterval: 1–5 s · START starts/stops</string>
   <string name="camera_hint">Select Photo mode. Keep your phone unlocked and its screen on.</string>
   <string name="settings">Settings</string>
   <string name="access_title">Accessibility</string>

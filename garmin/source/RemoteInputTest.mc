@@ -12,27 +12,29 @@ class InputTestRemote {
 }
 
 (:test)
-function shortDownChangesDelayOnceDespiteReleaseAndKeyEvents(logger) {
+function shortUpAndDownStillOnlyAdjustDelay(logger) {
     var remote = new InputTestRemote();
     var input = new RemoteInput(remote, new RemoteView(remote));
-    input.pressDown(100); input.releaseDown(500); input.handleKey(WatchUi.KEY_DOWN);
-    Test.assertEqual(remote.delays, -1); Test.assertEqual(remote.modes, 0);
-    input.pressDown(600); input.releaseDown(900); input.handleKey(WatchUi.KEY_DOWN);
-    Test.assertEqual(remote.delays, -2);
+    input.onPreviousPage();
+    Test.assertEqual(remote.delays, 1);
+    input.onNextPage();
+    Test.assertEqual(remote.delays, 0);
+    Test.assertEqual(remote.modes, 0); Test.assertEqual(remote.photos, 0);
     return true;
 }
 
 (:test)
-function longDownChangesModeWithoutChangingDelay(logger) {
+function nativeMenuSwitchesModeWithoutAdjustingDelayOrTakingPhoto(logger) {
     var remote = new InputTestRemote();
     var input = new RemoteInput(remote, new RemoteView(remote));
-    input.pressDown(100); input.pressDown(500); input.releaseDown(900);
-    input.handleKey(WatchUi.KEY_DOWN); input.releaseDown(950);
-    Test.assertEqual(remote.delays, 0); Test.assertEqual(remote.modes, 1);
-    input.pressDown(1000); input.releaseDown(1800);
-    Test.assertEqual(remote.modes, 2);
-    Test.assertEqual(DelaySelection.nextIndex(0, -1, 5), 0);
-    Test.assertEqual(DelaySelection.nextIndex(4, 1, 5), 4);
+    // Native behavior consumes MENU, so its low-level fallback must not run too.
+    if (!input.onMenu()) { input.handleKey(WatchUi.KEY_MENU); }
+    Test.assertEqual(remote.modes, 1); Test.assertEqual(remote.delays, 0);
+    Test.assertEqual(remote.photos, 0);
+    // Also support a platform delivering the raw MENU key directly.
+    input.handleKey(WatchUi.KEY_MENU);
+    Test.assertEqual(remote.modes, 2); Test.assertEqual(remote.delays, 0);
+    Test.assertEqual(remote.photos, 0);
     return true;
 }
 
